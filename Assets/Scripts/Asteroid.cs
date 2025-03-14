@@ -24,23 +24,17 @@ public class Asteroid : MonoBehaviour
 
     private void Start()
     {
-        // Assign random properties to make each asteroid feel unique
         spriteRenderer.sprite = sprites[Random.Range(0, sprites.Length)];
         transform.eulerAngles = new Vector3(0f, 0f, Random.value * 360f);
-
-        // Set the scale and mass of the asteroid based on the assigned size so
-        // the physics is more realistic
         transform.localScale = Vector3.one * size;
         rb.mass = size;
 
-        // Destroy the asteroid after it reaches its max lifetime
-        Destroy(gameObject, maxLifetime);
+        Invoke(nameof(ReturnToPool), maxLifetime);
     }
 
     public void SetTrajectory(Vector2 direction)
     {
-        // The asteroid only needs a force to be added once since they have no
-        // drag to make them stop moving
+        // rb.linearVelocity = direction * movementSpeed;
         rb.AddForce(direction * movementSpeed);
     }
 
@@ -48,8 +42,6 @@ public class Asteroid : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Bullet"))
         {
-            // Check if the asteroid is large enough to split in half
-            // (both parts must be greater than the minimum size)
             if ((size * 0.5f) >= minSize)
             {
                 CreateSplit();
@@ -57,28 +49,48 @@ public class Asteroid : MonoBehaviour
             }
 
             AsteroidsGameManager.Instance.OnAsteroidDestroyed(this);
-
-            // Destroy the current asteroid since it is either replaced by two
-            // new asteroids or small enough to be destroyed by the bullet
-            Destroy(gameObject);
+            ReturnToPool();
         }
     }
 
     private Asteroid CreateSplit()
     {
-        // Set the new asteroid poistion to be the same as the current asteroid
-        // but with a slight offset so they do not spawn inside each other
-        Vector2 position = transform.position;
-        position += Random.insideUnitCircle * 0.5f;
+        Vector2 position = (Vector2)transform.position + (Random.insideUnitCircle * 0.5f);
 
-        // Create the new asteroid at half the size of the current
-        Asteroid half = Instantiate(this, position, transform.rotation);
-        half.size = size * 0.5f;
+        // Приводим размер к ближайшему из доступных
+        float newSize = GetClosestSize(size * 0.5f);
 
-        // Set a random trajectory
+        Asteroid half = AsteroidPool.Instance.GetAsteroid(newSize, position, transform.rotation);
         half.SetTrajectory(Random.insideUnitCircle.normalized);
 
         return half;
     }
+    
+    private float GetClosestSize(float targetSize)
+    {
+        float[] availableSizes = { 1.65f, 1.0f, 0.75f, 0.35f };
+        float closestSize = availableSizes[0];
+        float minDifference = Mathf.Abs(targetSize - closestSize);
 
+        foreach (float size in availableSizes)
+        {
+            float difference = Mathf.Abs(targetSize - size);
+            if (difference < minDifference)
+            {
+                closestSize = size;
+                minDifference = difference;
+            }
+        }
+
+        return closestSize;
+    }
+
+
+    private void ReturnToPool()
+    {
+        rb.linearVelocity = Vector2.zero;
+        rb.angularVelocity = 0f;
+        gameObject.SetActive(false);
+        AsteroidPool.Instance.ReturnAsteroid(this);
+    }
 }
