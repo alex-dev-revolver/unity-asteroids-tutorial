@@ -117,7 +117,7 @@ public class Player : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Asteroid"))
         {
-            rb.velocity = Vector3.zero;
+            rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = 0f;
 
             GameManager.Instance.OnPlayerDeath(this);
