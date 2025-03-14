@@ -5,8 +5,8 @@ public class Player : MonoBehaviour
 {
     private Rigidbody2D rb;
 
-    [SerializeField]
-    private Bullet bulletPrefab;
+    // [SerializeField]
+    // private Bullet bulletPrefab;
 
     public float thrustSpeed = 1f;
     public bool thrusting { get; private set; }
@@ -99,7 +99,12 @@ public class Player : MonoBehaviour
 
     private void Shoot()
     {
-        Bullet bullet = Instantiate(bulletPrefab, transform.position, transform.rotation);
+        // Bullet bullet = Instantiate(bulletPrefab, transform.position, transform.rotation);
+        // bullet.Shoot(transform.up);
+        
+        Bullet bullet = BulletPool.Instance.GetBullet();
+        bullet.transform.position = transform.position;
+        bullet.transform.rotation = transform.rotation;
         bullet.Shoot(transform.up);
     }
 
@@ -120,7 +125,7 @@ public class Player : MonoBehaviour
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = 0f;
 
-            GameManager.Instance.OnPlayerDeath(this);
+            AsteroidsGameManager.Instance.OnPlayerDeath(this);
         }
     }
 

@@ -2,9 +2,9 @@
 using UnityEngine.UI;
 
 [DefaultExecutionOrder(-1)]
-public class GameManager : MonoBehaviour
+public class AsteroidsGameManager : MonoBehaviour
 {
-    public static GameManager Instance { get; private set; }
+    public static AsteroidsGameManager Instance { get; private set; }
 
     [SerializeField] private Player player;
     [SerializeField] private ParticleSystem explosionEffect;
